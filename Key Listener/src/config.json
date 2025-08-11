@@ -1,0 +1,12 @@
+{
+  "serverUrl": "wss://wss.roymond.net",
+  "keyBindings": [
+    { "key": "F8", "modifiers": [], "eventName": "bossDeathIncrement" },
+    { "key": "F9", "modifiers": [], "eventName": "bossDefeated" }
+  ],
+
+  "tokens": {
+    "gameToken":"EXAMPLE",
+    "authToken":"EXAMPLE"
+  }
+}
