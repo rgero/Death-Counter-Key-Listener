@@ -7,24 +7,31 @@ const path = require('path');
  * @param {boolean} validate - Whether to validate the config structure
  * @returns {Object} Parsed configuration object
  */
-const loadConfig = (configPath = './src/config.json', validate = true) => {
+/**
+ * Load and parse a JSON configuration file
+ * Checks for CONFIG_PATH env variable, then falls back to config.json in cwd
+ * @param {string|null} configPath - Optional override path
+ * @param {boolean} validate - Whether to validate the config structure
+ * @returns {Object} Parsed configuration object
+ */
+const loadConfig = (configPath = null, validate = true) => {
+  // Determine config path: ENV > param > cwd
+  let resolvedPath = process.env.CONFIG_PATH || configPath || path.join(process.cwd(), 'config.json');
   try {
-    const data = fs.readFileSync(configPath, 'utf-8');
+    const data = fs.readFileSync(resolvedPath, 'utf-8');
     const config = JSON.parse(data);
-    
     if (validate) {
       const validation = validateConfig(config);
       if (!validation.isValid) {
-        console.error(`Config validation errors in ${configPath}:`);
+        console.error(`Config validation errors in ${resolvedPath}:`);
         validation.errors.forEach(error => console.error(`  - ${error}`));
         process.exit(1);
       }
     }
-    
-    console.log(`Config loaded successfully from ${configPath}`);
+    console.log(`Config loaded successfully from ${resolvedPath}`);
     return config;
   } catch (err) {
-    console.error(`Error loading ${configPath}:`, err.message);
+    console.error(`Error loading ${resolvedPath}:`, err.message);
     process.exit(1);
   }
 };
@@ -80,16 +87,17 @@ const validateConfig = (config) => {
  * @returns {fs.FSWatcher} File watcher instance
  */
 const watchConfig = (configPath, callback, validate = true) => {
+  let resolvedPath = process.env.CONFIG_PATH || configPath || path.join(process.cwd(), 'config.json');
   let isReloading = false;
-  
-  const watcher = fs.watchFile(configPath, (curr, prev) => {
+
+  const watcher = fs.watchFile(resolvedPath, (curr, prev) => {
     if (isReloading) return;
-    
+
     isReloading = true;
-    console.log(`🔄 Config file changed, reloading ${configPath}...`);
-    
+    console.log(`🔄 Config file changed, reloading ${resolvedPath}...`);
+
     try {
-      const newConfig = loadConfig(configPath, validate);
+      const newConfig = loadConfig(resolvedPath, validate);
       callback(newConfig);
       console.log(`Config reloaded successfully`);
     } catch (error) {
@@ -98,7 +106,7 @@ const watchConfig = (configPath, callback, validate = true) => {
       isReloading = false;
     }
   });
-  
+
   return watcher;
 };
 

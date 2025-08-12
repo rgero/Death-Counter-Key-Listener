@@ -2,8 +2,11 @@ const fs = require('fs');
 const { GlobalKeyboardListener } = require('node-global-key-listener');
 const { loadConfig, watchConfig, createSocket, safeEmit, findMatchingBindings} = require('./utilities');
 
+// Determine config path from ENV or default
+const configPath = process.env.CONFIG_PATH || null;
+
 // Load config
-let config = loadConfig();
+let config = loadConfig(configPath);
 let socket;
 
 // Connect to Socket.IO server using utility function
@@ -26,7 +29,7 @@ keyboard.addListener(e => {
   }
 });
 
-// Watch config.json for hot reload using the utility function
-watchConfig('./src/config.json', (newConfig) => {
+// Watch config for hot reload using the utility function
+watchConfig(configPath, (newConfig) => {
   config = newConfig;
 });
